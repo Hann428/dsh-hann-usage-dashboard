@@ -130,21 +130,32 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.end(text)
 }
 
-function getBeijingClock(now = new Date()): { text: string; minutes: number } {
+function getBeijingClock(now = new Date()): { text: string; minutes: number; weekday: number } {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
   }).formatToParts(now)
+  const year = Number(parts.find((part) => part.type === 'year')?.value ?? '1970')
+  const month = Number(parts.find((part) => part.type === 'month')?.value ?? '1')
+  const day = Number(parts.find((part) => part.type === 'day')?.value ?? '1')
   const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? '0')
   const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? '0')
-  return { text: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`, minutes: hour * 60 + minute }
+  return {
+    text: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+    minutes: hour * 60 + minute,
+    weekday: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
+  }
 }
 
 function getBillingPeriod(now = new Date()): Pick<PricingInfo, 'period' | 'periodLabel' | 'rateLabel' | 'beijingTime'> {
   const clock = getBeijingClock(now)
-  const peak = (clock.minutes >= 9 * 60 && clock.minutes < 12 * 60) || (clock.minutes >= 14 * 60 && clock.minutes < 18 * 60)
+  const weekday = clock.weekday >= 1 && clock.weekday <= 5
+  const peak = weekday && ((clock.minutes >= 9 * 60 && clock.minutes < 12 * 60) || (clock.minutes >= 14 * 60 && clock.minutes < 18 * 60))
   return {
     period: peak ? 'peak' : 'off_peak',
     periodLabel: peak ? '高峰时段' : '空闲时段',
@@ -169,8 +180,8 @@ function extractPricePair(html: string, label: string, periodLabel: string): Pri
 
 function parsePricingRows(html: string, period: BillingPeriod): PricingInfo['rows'] {
   const periodLabel = period === 'peak' ? '高峰时段' : '空闲时段'
-  const cacheHitInput = extractPricePair(html, '百万tokens输入（缓存命中）', periodLabel)
-  const cacheMissInput = extractPricePair(html, '百万tokens输入（缓存未命中）', periodLabel)
+  const cacheHitInput = extractPricePair(html, '缓存命中', periodLabel)
+  const cacheMissInput = extractPricePair(html, '缓存未命中', periodLabel)
   const output = extractPricePair(html, '百万tokens输出', periodLabel)
   if (cacheHitInput === undefined || cacheMissInput === undefined || output === undefined) {
     throw new Error('官方价格表格式未匹配')

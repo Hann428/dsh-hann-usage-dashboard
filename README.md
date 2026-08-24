@@ -24,7 +24,7 @@ Requirements:
 
 - Account balance from DeepSeek's official `GET /user/balance` endpoint.
 - Current official prices for `deepseek-v4-flash` and `deepseek-v4-pro`.
-- Peak/off-peak status based on Beijing time, with orange peak and green off-peak labels.
+- Peak/off-peak status based on DeepSeek's current Beijing-time rule: peak is Monday-Friday 09:00-12:00 and 14:00-18:00; weekends and all other hours are off-peak.
 - Live countdown to the next peak/off-peak switch.
 - Compact balance health light on the Usage tab label: green when usable, orange when balance is below an enabled amount or percentage warning threshold, dim neutral when both switches are off.
 - Inline warning threshold switches and inputs for amount and percentage. Values are saved in browser localStorage and update the tab light immediately.

@@ -546,31 +546,47 @@ function formatPrices(cacheHit: string, cacheMiss: string, output: string): stri
 }
 
 function nextTransition(now: Date): { nextLabel: string; countdown: string } {
-  const seconds = beijingSeconds(now)
-  const next = seconds < 9 * 3600
-    ? { label: '高峰', at: 9 * 3600 }
-    : seconds < 12 * 3600
-      ? { label: '空闲', at: 12 * 3600 }
-      : seconds < 14 * 3600
-        ? { label: '高峰', at: 14 * 3600 }
-        : seconds < 18 * 3600
-          ? { label: '空闲', at: 18 * 3600 }
-          : { label: '高峰', at: 24 * 3600 + 9 * 3600 }
+  const { seconds, weekday } = beijingClock(now)
+  const next = weekday >= 1 && weekday <= 5
+    ? seconds < 9 * 3600
+      ? { label: '高峰', at: 9 * 3600 }
+      : seconds < 12 * 3600
+        ? { label: '空闲', at: 12 * 3600 }
+        : seconds < 14 * 3600
+          ? { label: '高峰', at: 14 * 3600 }
+          : seconds < 18 * 3600
+            ? { label: '空闲', at: 18 * 3600 }
+            : { label: '高峰', at: secondsUntilNextWeekdayPeak(seconds, weekday) }
+    : { label: '高峰', at: secondsUntilNextWeekdayPeak(seconds, weekday) }
   return { nextLabel: next.label, countdown: formatDuration(next.at - seconds) }
 }
 
-function beijingSeconds(now: Date): number {
+function beijingClock(now: Date): { seconds: number; weekday: number } {
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
   }).formatToParts(now)
+  const year = Number(parts.find((part) => part.type === 'year')?.value ?? '1970')
+  const month = Number(parts.find((part) => part.type === 'month')?.value ?? '1')
+  const day = Number(parts.find((part) => part.type === 'day')?.value ?? '1')
   const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? '0')
   const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? '0')
   const second = Number(parts.find((part) => part.type === 'second')?.value ?? '0')
-  return hour * 3600 + minute * 60 + second
+  return {
+    seconds: hour * 3600 + minute * 60 + second,
+    weekday: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
+  }
+}
+
+function secondsUntilNextWeekdayPeak(seconds: number, weekday: number): number {
+  const daysUntilNext = weekday === 0 ? 1 : weekday >= 5 ? 8 - weekday : 1
+  return daysUntilNext * 24 * 3600 + 9 * 3600
 }
 
 function formatDuration(totalSeconds: number): string {
