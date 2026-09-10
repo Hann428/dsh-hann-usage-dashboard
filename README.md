@@ -23,7 +23,7 @@ Requirements:
 ## Features
 
 - Account balance from DeepSeek's official `GET /user/balance` endpoint.
-- Current official prices for `deepseek-v4-flash` and `deepseek-v4-pro`.
+- Current official prices for `deepseek-flash` (DeepSeek-V4.1-Flash) and `deepseek-v4-pro`.
 - Peak/off-peak status based on DeepSeek's current Beijing-time rule: peak is Monday-Friday 09:00-12:00 and 14:00-18:00; weekends and all other hours are off-peak.
 - Live countdown to the next peak/off-peak switch.
 - Compact balance health light on the Usage tab label: green when usable, orange when balance is below an enabled amount or percentage warning threshold, dim neutral when both switches are off.
@@ -57,6 +57,7 @@ Configure the key in Harness Settings -> Models. The plugin reads the credential
 
 - DeepSeek's platform page login is separate from Harness. The "open usage page" link may require a browser login.
 - The pricing table is fetched from DeepSeek's official docs at runtime so price changes are reflected after refresh.
+- DeepSeek's 2026-09-10 pricing docs list `deepseek-flash` as the recommended Flash model name. The old `deepseek-v4-flash` and `deepseek-v4-flash-vision-exp` names are routed to DeepSeek-V4.1-Flash during the documented transition window.
 - If the docs page cannot be reached or parsed, the balance still renders and the price row reports the pricing error.
 
 ## Development

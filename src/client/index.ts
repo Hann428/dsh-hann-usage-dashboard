@@ -473,7 +473,7 @@ function priceRows(rows: NonNullable<PricingInfo['rows']>): ReactNode {
       h('span', {}, '官方当前价格'),
       h('span', { style: { fontSize: '12px' } }, '（元/百万tokens）')),
     h('span', { style: priceValueStyle },
-      modelPriceLine('Flash', rows.cacheHitInput.flash, rows.cacheMissInput.flash, rows.output.flash),
+      modelPriceLine('Flash V4.1', rows.cacheHitInput.flash, rows.cacheMissInput.flash, rows.output.flash),
       modelPriceLine('Pro', rows.cacheHitInput.pro, rows.cacheMissInput.pro, rows.output.pro)))
 }
 

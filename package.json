@@ -1,6 +1,6 @@
 {
   "name": "dsh-usage-dashboard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "DeepSeek usage and billing panel for DeepSeek Harness: balance, peak/off-peak pricing, and live countdown.",
   "private": false,
   "type": "module",

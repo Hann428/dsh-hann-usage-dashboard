@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.2
+
+- Update Flash naming for DeepSeek-V4.1-Flash and document DeepSeek's recommended `deepseek-flash` model id.
+- Keep pricing live from DeepSeek's official docs so the September 2026 Flash price reduction appears after refresh.
+
 ## Unreleased
 
 - Avoid a stale client type export path and return a normal balance error if credential resolution fails.

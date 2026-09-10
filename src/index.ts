@@ -320,7 +320,7 @@ export function apply(ctx: PluginContext, config: Config): void {
       const pricing = await fetchPricing()
       const lines: string[] = [`平台用量页: ${config.platformUsageURL}`, `Key: ${config.keyRef}`, `当前计费: ${pricing.periodLabel}（${pricing.rateLabel}，北京时间 ${pricing.beijingTime}）`]
       if (pricing.rows !== undefined) {
-        lines.push(`当前官方价格: Flash 命中/未命中/输出 ${pricing.rows.cacheHitInput.flash}/${pricing.rows.cacheMissInput.flash}/${pricing.rows.output.flash}；Pro ${pricing.rows.cacheHitInput.pro}/${pricing.rows.cacheMissInput.pro}/${pricing.rows.output.pro}`)
+        lines.push(`当前官方价格: Flash V4.1 命中/未命中/输出 ${pricing.rows.cacheHitInput.flash}/${pricing.rows.cacheMissInput.flash}/${pricing.rows.output.flash}；Pro ${pricing.rows.cacheHitInput.pro}/${pricing.rows.cacheMissInput.pro}/${pricing.rows.output.pro}`)
       }
       if (!result.ok) {
         lines.push(`查询失败 [${result.code}]: ${result.message}`)
