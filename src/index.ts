@@ -1,5 +1,5 @@
 /**
- * dsh-usage-dashboard host half.
+ * dsh-hann-usage-dashboard host half.
  *
  * Serves the DeepSeek account balance (official `GET /user/balance`) to the
  * browser panel through a `webServer` prefix route, and exposes the same
@@ -7,7 +7,7 @@
  * leaves the host: the panel only ever sees the query result.
  *
  * Route contract (all GET, JSON):
- *   /dsh-usage/api/balance  →  balance + platform usage link + key state
+ *   /dsh-hann-usage/api/balance  →  balance + platform usage link + key state
  *   anything else           →  404 { ok: false, error }
  */
 import type { Context } from 'cordis'
@@ -16,7 +16,7 @@ import { defineTool } from '@deepseek-ai/dsh-tools'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import z from 'schemastery'
 
-export const name = 'dsh-usage-dashboard'
+export const name = 'dsh-hann-usage-dashboard'
 export const inject = ['tools', 'webServer', 'credentials']
 
 /**
@@ -281,14 +281,14 @@ export function apply(ctx: PluginContext, config: Config): void {
 
   ctx.effect(() => ctx.webServer.register({
     kind: 'prefix',
-    path: '/dsh-usage/api',
+    path: '/dsh-hann-usage/api',
     handler: async (req: IncomingMessage, res: ServerResponse) => {
       if (req.method !== 'GET') {
         sendJson(res, 405, { ok: false, error: { code: 'METHOD_NOT_ALLOWED', message: `仅支持 GET（收到 ${req.method}）` } })
         return
       }
       const pathname = new URL(req.url ?? '/', 'http://localhost').pathname
-      if (pathname !== '/dsh-usage/api/balance') {
+      if (pathname !== '/dsh-hann-usage/api/balance') {
         sendJson(res, 404, { ok: false, error: { code: 'NOT_FOUND', message: '未知端点' } })
         return
       }
@@ -305,7 +305,7 @@ export function apply(ctx: PluginContext, config: Config): void {
           : { configured: false, health: balanceHealth(undefined, config), error: { code: result.code, message: result.message } }),
       })
     },
-  }), 'dsh-usage-dashboard: api route')
+  }), 'dsh-hann-usage-dashboard: api route')
 
   ctx.effect(() => ctx.tools.register(defineTool({
     name: 'dev_usage_balance',
@@ -334,5 +334,5 @@ export function apply(ctx: PluginContext, config: Config): void {
       }
       return lines.join('\n')
     },
-  })), 'dsh-usage-dashboard: balance tool')
+  })), 'dsh-hann-usage-dashboard: balance tool')
 }

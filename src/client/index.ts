@@ -1,7 +1,7 @@
 /**
- * dsh-usage-dashboard client half: the 用量 (Usage) tab in the conversation
+ * dsh-hann-usage-dashboard client half: the 用量 (Usage) tab in the conversation
  * view. Renders the DeepSeek account balance served by the host route
- * `/dsh-usage/api/balance` and links out to the platform usage page. Plain
+ * `/dsh-hann-usage/api/balance` and links out to the platform usage page. Plain
  * React via createElement (no JSX), structured typing of the touched host
  * surface like dsh-market, so this external package stays free of
  * monorepo-internal type dependencies.
@@ -18,18 +18,18 @@ interface ClientContext {
   slots: SlotsService
 }
 
-export const name = 'dsh-usage-dashboard'
+export const name = 'dsh-hann-usage-dashboard'
 export const inject = ['slots']
 
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.slots.inject('conversation.view', () =>
     ctx.slots.register({
       name: 'conversation.view',
-      id: 'dsh-usage-dashboard',
+      id: 'dsh-hann-usage-dashboard',
       order: 20,
       label: () => h(UsageTabLabel, {}),
     }, () => h(UsagePanel, {})),
-  ), 'dsh-usage-dashboard: panel')
+  ), 'dsh-hann-usage-dashboard: panel')
 }
 
 interface BalanceInfo {
@@ -97,7 +97,8 @@ interface ThresholdDraft {
   alertBalancePercentEnabled: boolean
 }
 
-const HEALTH_LEVEL_STORAGE_KEY = 'dsh-usage-dashboard:health-thresholds'
+const HEALTH_LEVEL_STORAGE_KEY = 'dsh-hann-usage-dashboard:health-thresholds'
+const LEGACY_HEALTH_LEVEL_STORAGE_KEY = 'dsh-usage-dashboard:health-thresholds'
 const DEFAULT_PERCENT_BASE = 100
 const DEFAULT_THRESHOLDS: ThresholdDraft = {
   alertBalance: '',
@@ -157,7 +158,7 @@ function UsagePanel(): ReactNode {
   useEffect(() => {
     let cancelled = false
     setState({ phase: 'loading' })
-    fetch('/dsh-usage/api/balance', { cache: 'no-store' })
+    fetch('/dsh-hann-usage/api/balance', { cache: 'no-store' })
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(`用量服务返回 ${res.status}`)
@@ -423,10 +424,11 @@ function parseOptionalNumber(value: string): number | undefined {
 
 function loadThresholds(): ThresholdDraft {
   try {
-    const raw = window.localStorage.getItem(HEALTH_LEVEL_STORAGE_KEY)
+    const current = window.localStorage.getItem(HEALTH_LEVEL_STORAGE_KEY)
+    const raw = current ?? window.localStorage.getItem(LEGACY_HEALTH_LEVEL_STORAGE_KEY)
     if (raw === null) return DEFAULT_THRESHOLDS
     const parsed = JSON.parse(raw) as Partial<ThresholdDraft>
-    return {
+    const thresholds: ThresholdDraft = {
       alertBalance: typeof parsed.alertBalance === 'string' ? parsed.alertBalance : '',
       alertBalancePercent: typeof parsed.alertBalancePercent === 'string' ? parsed.alertBalancePercent : '',
       alertBalanceEnabled: typeof parsed.alertBalanceEnabled === 'boolean'
@@ -436,6 +438,8 @@ function loadThresholds(): ThresholdDraft {
         ? parsed.alertBalancePercentEnabled
         : typeof parsed.alertBalancePercent === 'string' && parsed.alertBalancePercent.trim() !== '',
     }
+    if (current === null) saveThresholds(thresholds)
+    return thresholds
   } catch {
     return DEFAULT_THRESHOLDS
   }

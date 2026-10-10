@@ -1,4 +1,4 @@
-# dsh-usage-dashboard
+# dsh-hann-usage-dashboard
 
 DeepSeek usage and billing panel for DeepSeek Harness Web.
 
@@ -6,11 +6,27 @@ It adds a compact **Usage** tab to the conversation view. The tab shows the Deep
 
 ## Quick install from GitHub
 
+In the desktop app's **Add plugin** dialog, enter the full repository URL:
+
+```text
+https://github.com/Hann428/dsh-hann-usage-dashboard
+```
+
+The following command installs into the Web profile:
+
 ```bash
-dsh plugin --profile web add github:Hann428/dsh-usage-dashboard
+dsh plugin --profile web add github:Hann428/dsh-hann-usage-dashboard
 ```
 
 Restart `dsh web`, then open any conversation and select the **Usage** tab.
+
+For the desktop app, restart the app after installation. This repository is distributed through GitHub; do not use a bare npm package name as the install source.
+
+## Upgrade from the old name
+
+Version 0.0.3 renames the repository, package, client module, and Usage tab registration from `dsh-usage-dashboard` to `dsh-hann-usage-dashboard`. Uninstall the old plugin in the same Harness profile before installing this version, then restart Harness. Keeping both versions enabled creates duplicate Usage tabs and balance tools.
+
+On the same browser origin, saved warning thresholds are copied from the old storage key when the new key is absent. Moving from the Web app to the desktop app may use a different origin, so enter those settings again if needed. API keys remain in Harness credentials and are not copied by this migration.
 
 Requirements:
 
@@ -36,8 +52,8 @@ Requirements:
 The plugin uses the standard `DEEPSEEK_API_KEY` credential reference by default.
 
 ```yaml
-- id: dsh-usage-dashboard
-  name: dsh-usage-dashboard
+- id: dsh-hann-usage-dashboard
+  name: dsh-hann-usage-dashboard
   config:
     keyRef: DEEPSEEK_API_KEY
     baseURL: https://api.deepseek.com
@@ -66,6 +82,7 @@ Configure the key in Harness Settings -> Models. The plugin reads the credential
 pnpm install
 pnpm run typecheck
 pnpm run build:client
+node scripts/check-rename.mjs
 ```
 
 The built `lib/` files are committed so GitHub-source installs can run without a local build step.

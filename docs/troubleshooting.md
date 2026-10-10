@@ -1,5 +1,13 @@
 # Troubleshooting
 
+## Installation Reports No Bundle
+
+Use `https://github.com/Hann428/dsh-hann-usage-dashboard` as the installation source. The old bare name `dsh-usage-dashboard` resolves to an unrelated npm package that does not declare a Harness bundle. This project includes `dsh.bundle` and committed runtime files for GitHub installation.
+
+## Duplicate Usage Tabs
+
+Uninstall the old `dsh-usage-dashboard` plugin in the affected profile before installing `dsh-hann-usage-dashboard`, then restart Harness. The renamed plugin has a new registration id, so it does not automatically replace an installed package with the old name.
+
 ## Missing API Key
 
 Configure `DEEPSEEK_API_KEY` in DeepSeek Harness Settings -> Models. The plugin uses that credential reference by default.
@@ -27,4 +35,4 @@ The platform usage page opens in the browser and uses DeepSeek's own web session
 
 ## Plugin Does Not Appear
 
-Restart `dsh web` after installation. If the tab still does not appear, open Harness plugin settings and confirm that `dsh-usage-dashboard` is installed in the same profile used by the web app.
+Restart `dsh web` after installation. If the tab still does not appear, open Harness plugin settings and confirm that `dsh-hann-usage-dashboard` is installed in the same profile used by the web app.

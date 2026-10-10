@@ -1,5 +1,5 @@
 /**
- * dsh-usage-dashboard host half.
+ * dsh-hann-usage-dashboard host half.
  *
  * Serves the DeepSeek account balance (official `GET /user/balance`) to the
  * browser panel through a `webServer` prefix route, and exposes the same
@@ -7,13 +7,13 @@
  * leaves the host: the panel only ever sees the query result.
  *
  * Route contract (all GET, JSON):
- *   /dsh-usage/api/balance  →  balance + platform usage link + key state
+ *   /dsh-hann-usage/api/balance  →  balance + platform usage link + key state
  *   anything else           →  404 { ok: false, error }
  */
 import type { Context } from 'cordis';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import z from 'schemastery';
-export declare const name = "dsh-usage-dashboard";
+export declare const name = "dsh-hann-usage-dashboard";
 export declare const inject: string[];
 /**
  * Structurally-typed host surface this plugin touches. External packages do

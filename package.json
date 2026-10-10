@@ -1,6 +1,6 @@
 {
-  "name": "dsh-usage-dashboard",
-  "version": "0.0.2",
+  "name": "dsh-hann-usage-dashboard",
+  "version": "0.0.3",
   "description": "DeepSeek usage and billing panel for DeepSeek Harness: balance, peak/off-peak pricing, and live countdown.",
   "private": false,
   "type": "module",
@@ -11,13 +11,13 @@
     "cordis.patch.yml"
   ],
   "license": "BSD-3-Clause",
-  "homepage": "https://github.com/Hann428/dsh-usage-dashboard#readme",
+  "homepage": "https://github.com/Hann428/dsh-hann-usage-dashboard#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Hann428/dsh-usage-dashboard.git"
+    "url": "git+https://github.com/Hann428/dsh-hann-usage-dashboard.git"
   },
   "bugs": {
-    "url": "https://github.com/Hann428/dsh-usage-dashboard/issues"
+    "url": "https://github.com/Hann428/dsh-hann-usage-dashboard/issues"
   },
   "keywords": [
     "deepseek-harness",
