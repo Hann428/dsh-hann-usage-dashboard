@@ -1,5 +1,9 @@
 # Troubleshooting
 
+## Activation Reports Failed to Import
+
+Version 0.0.4 fixes the missing legacy `schemastery` dependency in desktop installs by using Harness's official `@deepseek-ai/schemastery` package. If version 0.0.3 installs but fails to activate, uninstall it and install the repository again, then restart Harness. The package name and saved warning thresholds are unchanged.
+
 ## Installation Reports No Bundle
 
 Use `https://github.com/Hann428/dsh-hann-usage-dashboard` as the installation source. The old bare name `dsh-usage-dashboard` resolves to an unrelated npm package that does not declare a Harness bundle. This project includes `dsh.bundle` and committed runtime files for GitHub installation.

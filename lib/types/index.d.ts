@@ -10,9 +10,9 @@
  *   /dsh-hann-usage/api/balance  →  balance + platform usage link + key state
  *   anything else           →  404 { ok: false, error }
  */
-import type { Context } from 'cordis';
+import type { Context } from '@deepseek-ai/cordis';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import z from 'schemastery';
+import z from '@deepseek-ai/schemastery';
 export declare const name = "dsh-hann-usage-dashboard";
 export declare const inject: string[];
 /**

@@ -10,11 +10,11 @@
  *   /dsh-hann-usage/api/balance  →  balance + platform usage link + key state
  *   anything else           →  404 { ok: false, error }
  */
-import type { Context } from 'cordis'
+import type { Context } from '@deepseek-ai/cordis'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
-import z from 'schemastery'
+import z from '@deepseek-ai/schemastery'
 
 export const name = 'dsh-hann-usage-dashboard'
 export const inject = ['tools', 'webServer', 'credentials']

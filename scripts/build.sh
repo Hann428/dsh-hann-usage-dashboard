@@ -44,9 +44,9 @@ link_pkg() {
 echo "=== Linking build dependencies (checkout: $CHECKOUT) ==="
 mkdir -p node_modules/@deepseek-ai
 node -e "const fs=require('fs');fs.rmSync('node_modules/@standard-schema',{recursive:true,force:true})"
-link_pkg cordis vendor/cordis
-link_pkg cosmokit vendor/cosmokit
-link_pkg schemastery vendor/schemastery
+link_pkg @deepseek-ai/cordis vendor/cordis
+link_pkg @deepseek-ai/cosmokit vendor/cosmokit
+link_pkg @deepseek-ai/schemastery vendor/schemastery
 link_pkg @deepseek-ai/dsh-tools packages/core/tools
 link_pkg @deepseek-ai/dsh-llm packages/llm/llm
 link_pkg @deepseek-ai/dsh-credentials packages/credentials/credentials

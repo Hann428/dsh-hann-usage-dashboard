@@ -1,6 +1,6 @@
 {
   "name": "dsh-hann-usage-dashboard",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "DeepSeek usage and billing panel for DeepSeek Harness: balance, peak/off-peak pricing, and live countdown.",
   "private": false,
   "type": "module",
@@ -27,13 +27,13 @@
     "deepseek"
   ],
   "peerDependencies": {
-    "@deepseek-ai/dsh-llm": ">=0.0.1-rc <2",
-    "@deepseek-ai/dsh-tools": ">=0.0.1-rc <2",
-    "@deepseek-ai/dsh-credentials": ">=0.0.1-rc <2",
-    "cordis": ">=4.0.0-rc <5",
-    "schemastery": "^3.18.0",
-    "@deepseek-ai/dsh-client-ui-slots": ">=0.0.1-rc <2",
-    "@deepseek-ai/dsh-client-runtime": ">=0.0.1-rc <2"
+    "@deepseek-ai/dsh-llm": ">=0.0.1-rc <0.1.0 || >=0.1.0-0 <2",
+    "@deepseek-ai/dsh-tools": ">=0.0.1-rc <0.1.0 || >=0.1.0-0 <2",
+    "@deepseek-ai/dsh-credentials": ">=0.0.1-rc <0.1.0 || >=0.1.0-0 <2",
+    "@deepseek-ai/cordis": ">=4.0.0-rc.1 <5",
+    "@deepseek-ai/schemastery": "^3.18.1",
+    "@deepseek-ai/dsh-client-ui-slots": ">=0.0.1-rc <0.1.0 || >=0.1.0-0 <2",
+    "@deepseek-ai/dsh-client-runtime": ">=0.0.1-rc <0.1.0 || >=0.1.0-0 <2"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

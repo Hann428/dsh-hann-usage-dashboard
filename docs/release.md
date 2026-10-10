@@ -8,7 +8,7 @@ This repository is designed for GitHub-source installation by DeepSeek Harness.
 2. Run `pnpm run typecheck`.
 3. Run `pnpm run build:client`.
 4. Confirm `lib/` changed when runtime output changed.
-5. Run `node scripts/check-rename.mjs` to check the published loader, route, and warning-setting migration.
+5. Run `node scripts/check-rename.mjs` to check the published loader, route, and warning-setting migration, then `node scripts/check-installed-import.mjs <Harness profile directory>` to verify imports with the actual host's declared peer packages.
 6. Update `CHANGELOG.md`.
 7. Push the release commit.
 

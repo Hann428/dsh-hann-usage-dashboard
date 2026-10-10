@@ -85,4 +85,10 @@ pnpm run build:client
 node scripts/check-rename.mjs
 ```
 
+Check host imports against an installed desktop profile, without legacy dependency aliases:
+
+```powershell
+node scripts/check-installed-import.mjs "$env:USERPROFILE\.dsh\profiles\desktop"
+```
+
 The built `lib/` files are committed so GitHub-source installs can run without a local build step.

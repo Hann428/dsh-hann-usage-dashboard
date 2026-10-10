@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.4
+
+- Fix desktop activation by importing the official `@deepseek-ai/schemastery` package instead of the unavailable legacy `schemastery` name.
+- Use the official scoped Cordis dependency and explicitly include current Harness 0.1.0 prereleases in peer ranges.
+- Check that built host imports resolve against only the declared peer packages, without legacy build-directory aliases.
+
 ## 0.0.3
 
 - Rename the repository and plugin package to `dsh-hann-usage-dashboard` to distinguish it from unrelated npm packages.
