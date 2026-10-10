@@ -71,6 +71,8 @@ Configure the key in Harness Settings -> Models. The plugin reads the credential
 
 ## Notes
 
+- Version 0.0.5 follows Harness light/dark theme colors and adds an actionable authentication error, including the credential source without exposing its value.
+- `HTTP_401` means DeepSeek rejected the key used for the balance request. Update `DEEPSEEK_API_KEY` in Harness Settings -> Models, then refresh Usage. An inherited environment key takes priority over the saved key; update that environment value and restart Harness if the source is `env`. Keys for third-party gateways do not authenticate against DeepSeek's official balance endpoint.
 - DeepSeek's platform page login is separate from Harness. The "open usage page" link may require a browser login.
 - The pricing table is fetched from DeepSeek's official docs at runtime so price changes are reflected after refresh.
 - DeepSeek's 2026-09-10 pricing docs list `deepseek-flash` as the recommended Flash model name. The old `deepseek-v4-flash` and `deepseek-v4-flash-vision-exp` names are routed to DeepSeek-V4.1-Flash during the documented transition window.
@@ -83,6 +85,7 @@ pnpm install
 pnpm run typecheck
 pnpm run build:client
 node scripts/check-rename.mjs
+node scripts/check-authentication.mjs
 ```
 
 Check host imports against an installed desktop profile, without legacy dependency aliases:

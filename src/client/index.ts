@@ -133,7 +133,7 @@ const row = (label: string, value: string): ReactNode =>
     h('span', { style: { fontFamily: 'monospace' } }, value))
 
 const labelStyle: CSSProperties = {
-  color: '#8b93a7',
+  color: 'var(--dsw-alias-label-secondary, #8b93a7)',
   flex: '0 0 112px',
   whiteSpace: 'nowrap',
 }
@@ -145,7 +145,7 @@ const box: CSSProperties = {
   padding: '16px',
   fontFamily: 'system-ui, sans-serif',
   fontSize: '13px',
-  color: '#d6dae2',
+  color: 'var(--dsw-alias-label-primary, inherit)',
   maxWidth: '640px',
 }
 
@@ -211,7 +211,7 @@ function UsagePanel(): ReactNode {
   if (state.phase === 'error') {
     return h('div', { style: box },
       h('div', { style: { fontWeight: 600 } }, '无法连接用量服务'),
-      h('div', { style: { color: '#e06c75' } }, state.message),
+      h('div', { style: { color: 'var(--dsw-alias-state-error-primary, #e06c75)' } }, state.message),
       buttonBar(refresh))
   }
   const data = state.data
@@ -233,18 +233,18 @@ function UsagePanel(): ReactNode {
         thresholdRow('告警金额（按百分比）', thresholds.alertBalancePercent, 'alertBalancePercent', thresholds.alertBalancePercentEnabled, (value) => { editThreshold('alertBalancePercent', value) }, (value) => { toggleThreshold('alertBalancePercentEnabled', value) }, '%'),
         pricingRows(data.pricing, now),
         ...data.balance.balance_infos.map((info) =>
-          h('div', { key: info.currency, style: { borderTop: '1px solid #2a3040', marginTop: '4px', paddingTop: '4px' } },
+          h('div', { key: info.currency, style: { borderTop: '1px solid var(--dsw-alias-border-l2, #2a3040)', marginTop: '4px', paddingTop: '4px' } },
             row(`${info.currency} 总额`, info.total_balance),
             row('　赠送额度', info.granted_balance),
             row('　充值额度', info.topped_up_balance))))
-      : h('div', { style: { color: '#e06c75' } }, `查询失败 [${data.error?.code ?? 'UNKNOWN'}]: ${data.error?.message ?? '未知错误'}`),
-    h('div', { style: { color: '#8b93a7', fontSize: '12px' } },
+      : h('div', { style: { color: 'var(--dsw-alias-state-error-primary, #e06c75)' } }, `查询失败 [${data.error?.code ?? 'UNKNOWN'}]: ${data.error?.message ?? '未知错误'}`),
+    h('div', { style: { color: 'var(--dsw-alias-label-secondary, #8b93a7)', fontSize: '12px' } },
       `${data.keyRef} · ${data.baseURL}${data.source !== undefined ? ` · 来源 ${data.source}` : ''} · 更新于 ${updated}`),
     buttonBar(refresh))
 }
 
 const linkStyle: CSSProperties = {
-  color: '#7aa2f7',
+  color: 'var(--dsw-alias-state-business-primary, #7aa2f7)',
   textDecoration: 'none',
   fontWeight: 600,
 }
@@ -259,9 +259,9 @@ const healthDotBaseStyle: CSSProperties = {
 
 const buttonStyle: CSSProperties = {
   background: 'transparent',
-  border: '1px solid #3b4252',
+  border: '1px solid var(--dsw-alias-border-l3, #3b4252)',
   borderRadius: '6px',
-  color: '#d6dae2',
+  color: 'var(--dsw-alias-label-primary, inherit)',
   padding: '6px 14px',
   cursor: 'pointer',
   fontFamily: 'system-ui, sans-serif',
@@ -274,20 +274,19 @@ const thresholdInputStyle: CSSProperties = {
   minWidth: 0,
   border: 0,
   background: 'transparent',
-  color: '#d6dae2',
+  color: 'var(--dsw-alias-label-primary, inherit)',
   padding: 0,
   fontFamily: 'monospace',
   fontSize: '12px',
-  outline: 'none',
 }
 
 const thresholdInputBoxStyle: CSSProperties = {
   width: '96px',
   boxSizing: 'border-box',
-  border: '1px solid #343b4d',
+  border: '1px solid var(--dsw-alias-border-l3, #343b4d)',
   borderRadius: '4px',
-  background: '#111318',
-  color: '#d6dae2',
+  background: 'var(--dsw-specific-input-major, #111318)',
+  color: 'var(--dsw-alias-label-primary, inherit)',
   padding: '2px 6px',
   display: 'inline-flex',
   alignItems: 'center',
@@ -302,7 +301,7 @@ const thresholdInputWrapStyle: CSSProperties = {
 }
 
 const thresholdSuffixStyle: CSSProperties = {
-  color: '#8b93a7',
+  color: 'var(--dsw-alias-label-secondary, #8b93a7)',
   minWidth: '10px',
 }
 
@@ -457,10 +456,12 @@ function pricingRows(pricing: PricingInfo | undefined, now: Date): ReactNode {
   if (pricing === undefined) {
     return null
   }
-  const periodColor = pricing.period === 'peak' ? '#f6a04d' : '#58c777'
+  const periodColor = pricing.period === 'peak'
+    ? 'var(--dsw-alias-state-warn-label, #f6a04d)'
+    : 'var(--dsw-alias-state-success-primary, #58c777)'
   const transition = nextTransition(now)
   const hint = pricing.period === 'peak' ? '长任务建议等空闲时段' : '适合运行长上下文任务'
-  return h('div', { style: { borderTop: '1px solid #2a3040', marginTop: '4px', paddingTop: '4px' } },
+  return h('div', { style: { borderTop: '1px solid var(--dsw-alias-border-l2, #2a3040)', marginTop: '4px', paddingTop: '4px' } },
     h('div', { style: statusBarStyle },
       h('span', { style: { color: periodColor, fontWeight: 700 } }, `${pricing.periodLabel}（${pricing.rateLabel}）`),
       h('span', {}, `距${transition.nextLabel} `, h('span', { style: { color: periodColor } }, transition.countdown)),
@@ -492,7 +493,7 @@ const statusBarStyle: CSSProperties = {
   alignItems: 'center',
   flexWrap: 'wrap',
   padding: '6px 0 8px',
-  color: '#8b93a7',
+  color: 'var(--dsw-alias-label-secondary, #8b93a7)',
 }
 
 const thresholdLabelStyle: CSSProperties = {
@@ -501,13 +502,13 @@ const thresholdLabelStyle: CSSProperties = {
 }
 
 function thresholdSwitchStyle(enabled: boolean): CSSProperties {
-  const color = enabled ? '#58c777' : '#343b4d'
+  const color = enabled ? '#58c777' : 'var(--dsw-alias-border-l3, #343b4d)'
   return {
     width: '28px',
     height: '16px',
     borderRadius: '999px',
     border: `1px solid ${color}`,
-    background: enabled ? 'rgba(88, 199, 119, 0.28)' : 'rgba(52, 59, 77, 0.42)',
+    background: enabled ? 'rgba(88, 199, 119, 0.28)' : 'var(--dsw-alias-button-ghost-active-fill, rgba(52, 59, 77, 0.42))',
     padding: '2px',
     display: 'inline-flex',
     alignItems: 'center',
@@ -525,7 +526,7 @@ const priceGridStyle: CSSProperties = {
 }
 
 const priceLabelStyle: CSSProperties = {
-  color: '#8b93a7',
+  color: 'var(--dsw-alias-label-secondary, #8b93a7)',
   display: 'flex',
   flexDirection: 'column',
   whiteSpace: 'nowrap',
@@ -541,7 +542,7 @@ const priceValueStyle: CSSProperties = {
 }
 
 const highlightedPriceLineStyle: CSSProperties = {
-  color: '#d6dae2',
+  color: 'var(--dsw-alias-label-primary, inherit)',
   fontWeight: 700,
 }
 

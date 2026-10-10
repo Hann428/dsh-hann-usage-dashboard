@@ -86,7 +86,7 @@ interface BalancePayload {
 
 type BalanceResult =
   | { ok: true; payload: BalancePayload; source: string }
-  | { ok: false; code: string; message: string }
+  | { ok: false; code: string; message: string; source?: string }
 
 type BillingPeriod = 'peak' | 'off_peak'
 
@@ -234,7 +234,10 @@ export function apply(ctx: PluginContext, config: Config): void {
         return {
           ok: false,
           code: `HTTP_${response.status}`,
-          message: `余额接口返回 ${response.status} ${response.statusText}`,
+          message: response.status === 401
+            ? `DeepSeek 拒绝 API Key，请在设置 → 模型更新 ${config.keyRef} 后刷新`
+            : `余额接口返回 ${response.status} ${response.statusText}`,
+          source: credential.source,
         }
       }
       const payload = (await response.json()) as BalancePayload
@@ -302,7 +305,7 @@ export function apply(ctx: PluginContext, config: Config): void {
         pricing,
         ...(result.ok
           ? { configured: true, balance: result.payload, source: result.source, health: balanceHealth(result.payload, config) }
-          : { configured: false, health: balanceHealth(undefined, config), error: { code: result.code, message: result.message } }),
+          : { configured: false, source: result.source, health: balanceHealth(undefined, config), error: { code: result.code, message: result.message } }),
       })
     },
   }), 'dsh-hann-usage-dashboard: api route')
