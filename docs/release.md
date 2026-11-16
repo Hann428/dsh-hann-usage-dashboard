@@ -6,11 +6,11 @@ This repository is designed for GitHub-source installation by DeepSeek Harness.
 
 1. Update source files under `src/`.
 2. Run `pnpm run typecheck`.
-3. Run `pnpm run build:client`.
+3. Run `pnpm run build` with a compatible Harness source checkout and `pnpm run build:client`.
 4. Confirm `lib/` changed when runtime output changed.
-5. Run `node scripts/check-rename.mjs` to check the published loader, route, and warning-setting migration, then `node scripts/check-installed-import.mjs <Harness profile directory>` to verify imports with the actual host's declared peer packages.
+5. Run the loader, authentication, and pricing checks in `scripts/`. Validate the packed plugin in a clean Harness profile before pushing.
 6. Update `CHANGELOG.md`.
-7. Push the release commit.
+7. Push the release commit and the matching version tag for pinned GitHub installs.
 
 ## Marketplace Notes
 

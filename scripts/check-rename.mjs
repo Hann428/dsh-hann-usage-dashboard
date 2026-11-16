@@ -25,8 +25,7 @@ function mountClient(entries, writeFails = false) {
   const states = []
   const effects = []
   const requests = []
-  let registration
-  let renderPanel
+  const registrations = new Map()
   let client
   const react = {
     createElement: (type, props, ...children) => ({ type, props, children }),
@@ -71,11 +70,14 @@ function mountClient(entries, writeFails = false) {
     effect: (effect) => effect(),
     slots: {
       inject: (_slot, register) => register(),
-      register: (meta, render) => { registration = meta; renderPanel = render },
+      register: (meta, render) => { registrations.set(meta.name, { meta, render }) },
     },
   })
-  assert.equal(registration.id, expected)
-  const panel = renderPanel()
+  const view = registrations.get('conversation.view')
+  assert.equal(view.meta.id, expected)
+  assert.equal(view.meta.label(), '用量')
+  assert.equal(registrations.get('conversation.session.header.utilities').meta.id, 'dsh-hann-usage-health')
+  const panel = view.render()
   panel.type()
   const cleanups = effects.map((effect) => effect()).filter((cleanup) => typeof cleanup === 'function')
   assert.equal(requests[0], '/dsh-hann-usage/api/balance')

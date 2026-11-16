@@ -15,6 +15,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import z from '@deepseek-ai/schemastery'
+import { billingStatusAt, parsePricingTable, type PriceRows, type PricingInfo } from './pricing.js'
 
 export const name = 'dsh-hann-usage-dashboard'
 export const inject = ['tools', 'webServer', 'credentials']
@@ -88,28 +89,6 @@ type BalanceResult =
   | { ok: true; payload: BalancePayload; source: string }
   | { ok: false; code: string; message: string; source?: string }
 
-type BillingPeriod = 'peak' | 'off_peak'
-
-interface PricePair {
-  flash: string
-  pro: string
-}
-
-interface PricingInfo {
-  period: BillingPeriod
-  periodLabel: string
-  rateLabel: string
-  beijingTime: string
-  docsURL: string
-  updatedAt: number
-  rows?: {
-    cacheHitInput: PricePair
-    cacheMissInput: PricePair
-    output: PricePair
-  }
-  error?: { code: string; message: string }
-}
-
 interface BalanceHealth {
   level: 'ok' | 'warning' | 'unknown'
   currency: string
@@ -130,63 +109,9 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.end(text)
 }
 
-function getBeijingClock(now = new Date()): { text: string; minutes: number; weekday: number } {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(now)
-  const year = Number(parts.find((part) => part.type === 'year')?.value ?? '1970')
-  const month = Number(parts.find((part) => part.type === 'month')?.value ?? '1')
-  const day = Number(parts.find((part) => part.type === 'day')?.value ?? '1')
-  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? '0')
-  const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? '0')
-  return {
-    text: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
-    minutes: hour * 60 + minute,
-    weekday: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
-  }
-}
-
-function getBillingPeriod(now = new Date()): Pick<PricingInfo, 'period' | 'periodLabel' | 'rateLabel' | 'beijingTime'> {
-  const clock = getBeijingClock(now)
-  const weekday = clock.weekday >= 1 && clock.weekday <= 5
-  const peak = weekday && ((clock.minutes >= 9 * 60 && clock.minutes < 12 * 60) || (clock.minutes >= 14 * 60 && clock.minutes < 18 * 60))
-  return {
-    period: peak ? 'peak' : 'off_peak',
-    periodLabel: peak ? '高峰时段' : '空闲时段',
-    rateLabel: peak ? '全价' : '半价',
-    beijingTime: clock.text,
-  }
-}
-
-function textCell(value: string): string {
-  return value.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').trim()
-}
-
-function extractPricePair(html: string, label: string, periodLabel: string): PricePair | undefined {
-  const start = html.indexOf(label)
-  if (start === -1) return undefined
-  const slice = html.slice(start, start + 900)
-  const cell = String.raw`<td(?:\s+[^>]*)?>`
-  const pattern = new RegExp(`${cell}\\s*${periodLabel}\\s*</td>\\s*${cell}\\s*([^<]+?)\\s*</td>\\s*${cell}\\s*([^<]+?)\\s*</td>`)
-  const match = slice.match(pattern)
-  return match === null ? undefined : { flash: textCell(match[1]), pro: textCell(match[2]) }
-}
-
-function parsePricingRows(html: string, period: BillingPeriod): PricingInfo['rows'] {
-  const periodLabel = period === 'peak' ? '高峰时段' : '空闲时段'
-  const cacheHitInput = extractPricePair(html, '缓存命中', periodLabel)
-  const cacheMissInput = extractPricePair(html, '缓存未命中', periodLabel)
-  const output = extractPricePair(html, '百万tokens输出', periodLabel)
-  if (cacheHitInput === undefined || cacheMissInput === undefined || output === undefined) {
-    throw new Error('官方价格表格式未匹配')
-  }
-  return { cacheHitInput, cacheMissInput, output }
+function describePriceRows(rows: PriceRows): string {
+  const { cacheHitInput, cacheMissInput, output } = rows
+  return `Flash V4.1 命中/未命中/输出 ${cacheHitInput.flash}/${cacheMissInput.flash}/${output.flash}；Pro ${cacheHitInput.pro}/${cacheMissInput.pro}/${output.pro}`
 }
 
 function parseAmount(value: string): number | undefined {
@@ -252,33 +177,29 @@ export function apply(ctx: PluginContext, config: Config): void {
   }
 
   const fetchPricing = async (): Promise<PricingInfo> => {
-    const period = getBillingPeriod()
+    let rowsByPeriod: PricingInfo['rowsByPeriod']
+    let error: PricingInfo['error']
     try {
       const response = await fetch(PRICING_DOCS_URL, {
         signal: AbortSignal.timeout(config.timeoutMs),
       })
-      if (!response.ok) {
-        return {
-          ...period,
-          docsURL: PRICING_DOCS_URL,
-          updatedAt: Date.now(),
-          error: { code: `HTTP_${response.status}`, message: `官方价格页返回 ${response.status} ${response.statusText}` },
-        }
+      if (response.ok) {
+        rowsByPeriod = parsePricingTable(await response.text())
+      } else {
+        error = { code: `HTTP_${response.status}`, message: `官方价格页返回 ${response.status} ${response.statusText}` }
       }
-      const html = await response.text()
-      return {
-        ...period,
-        docsURL: PRICING_DOCS_URL,
-        updatedAt: Date.now(),
-        rows: parsePricingRows(html, period.period),
-      }
-    } catch (error) {
-      return {
-        ...period,
-        docsURL: PRICING_DOCS_URL,
-        updatedAt: Date.now(),
-        error: { code: 'PRICING_FETCH_FAILED', message: error instanceof Error ? error.message : String(error) },
-      }
+    } catch (cause) {
+      error = { code: 'PRICING_FETCH_FAILED', message: cause instanceof Error ? cause.message : String(cause) }
+    }
+    const now = new Date()
+    const { period, periodLabel, rateLabel, beijingTime } = billingStatusAt(now)
+    return {
+      period, periodLabel, rateLabel, beijingTime,
+      docsURL: PRICING_DOCS_URL,
+      updatedAt: now.getTime(),
+      rowsByPeriod,
+      rows: period === 'unknown' ? undefined : rowsByPeriod?.[period],
+      error,
     }
   }
 
@@ -321,9 +242,13 @@ export function apply(ctx: PluginContext, config: Config): void {
     async execute() {
       const result = await fetchBalance()
       const pricing = await fetchPricing()
-      const lines: string[] = [`平台用量页: ${config.platformUsageURL}`, `Key: ${config.keyRef}`, `当前计费: ${pricing.periodLabel}（${pricing.rateLabel}，北京时间 ${pricing.beijingTime}）`]
+      const billing = [pricing.rateLabel, `北京时间 ${pricing.beijingTime}`].filter(Boolean).join('，')
+      const lines: string[] = [`平台用量页: ${config.platformUsageURL}`, `Key: ${config.keyRef}`, `当前计费: ${pricing.periodLabel}（${billing}）`]
       if (pricing.rows !== undefined) {
-        lines.push(`当前官方价格: Flash V4.1 命中/未命中/输出 ${pricing.rows.cacheHitInput.flash}/${pricing.rows.cacheMissInput.flash}/${pricing.rows.output.flash}；Pro ${pricing.rows.cacheHitInput.pro}/${pricing.rows.cacheMissInput.pro}/${pricing.rows.output.pro}`)
+        lines.push(`当前官方价格: ${describePriceRows(pricing.rows)}`)
+      } else if (pricing.rowsByPeriod !== undefined) {
+        lines.push(`官方高峰价格: ${describePriceRows(pricing.rowsByPeriod.peak)}`,
+          `官方空闲价格: ${describePriceRows(pricing.rowsByPeriod.off_peak)}`)
       }
       if (!result.ok) {
         lines.push(`查询失败 [${result.code}]: ${result.message}`)

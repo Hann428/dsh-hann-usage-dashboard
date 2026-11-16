@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.6
+
+- Restore the Usage tab on Harness 0.2.2 by using a text label and placing the balance indicator in the conversation header.
+- Switch the period, price and countdown together when an open panel crosses a Beijing-time billing boundary.
+- Recognize Chinese statutory holidays in the 2026 and 2027 calendars. Show both official rates when the date's holiday treatment is uncertain.
+
 ## 0.0.4
 
 - Fix desktop activation by importing the official `@deepseek-ai/schemastery` package instead of the unavailable legacy `schemastery` name.

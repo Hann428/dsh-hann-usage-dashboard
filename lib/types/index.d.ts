@@ -57,24 +57,24 @@ export interface Config {
     /** Balance value treated as 100% for percentage checks. */
     balancePercentBase: number;
 }
-export declare const Config: z<Schemastery.ObjectS<{
-    keyRef: z<string, string>;
-    baseURL: z<string, string>;
-    platformUsageURL: z<string, string>;
-    timeoutMs: z<number, number>;
-    healthCurrency: z<string, string>;
-    alertBalance: z<number, number>;
-    alertBalancePercent: z<number, number>;
-    balancePercentBase: z<number, number>;
-}>, Schemastery.ObjectT<{
-    keyRef: z<string, string>;
-    baseURL: z<string, string>;
-    platformUsageURL: z<string, string>;
-    timeoutMs: z<number, number>;
-    healthCurrency: z<string, string>;
-    alertBalance: z<number, number>;
-    alertBalancePercent: z<number, number>;
-    balancePercentBase: z<number, number>;
-}>>;
+export declare const Config: z<Schemastery.ObjectS<NoInfer<{
+    keyRef: z<string, string, "defined">;
+    baseURL: z<string, string, "defined">;
+    platformUsageURL: z<string, string, "defined">;
+    timeoutMs: z<number, number, "defined">;
+    healthCurrency: z<string, string, "defined">;
+    alertBalance: z<number, number, "defined">;
+    alertBalancePercent: z<number, number, "defined">;
+    balancePercentBase: z<number, number, "defined">;
+}>>, Schemastery.ObjectT<NoInfer<{
+    keyRef: z<string, string, "defined">;
+    baseURL: z<string, string, "defined">;
+    platformUsageURL: z<string, string, "defined">;
+    timeoutMs: z<number, number, "defined">;
+    healthCurrency: z<string, string, "defined">;
+    alertBalance: z<number, number, "defined">;
+    alertBalancePercent: z<number, number, "defined">;
+    balancePercentBase: z<number, number, "defined">;
+}>>, "plain">;
 export declare function apply(ctx: PluginContext, config: Config): void;
 export {};

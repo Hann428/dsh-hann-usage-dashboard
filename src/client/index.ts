@@ -7,6 +7,7 @@
  * monorepo-internal type dependencies.
  */
 import { createElement as h, useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
+import { billingStatusAt, type PriceRows, type PricingInfo } from '../pricing.js'
 
 interface SlotsService {
   inject(slot: string, register: () => unknown): void
@@ -27,9 +28,16 @@ export function apply(ctx: ClientContext): void {
       name: 'conversation.view',
       id: 'dsh-hann-usage-dashboard',
       order: 20,
-      label: () => h(UsageTabLabel, {}),
+      label: () => '用量',
     }, () => h(UsagePanel, {})),
   ), 'dsh-hann-usage-dashboard: panel')
+  ctx.effect(() => ctx.slots.inject('conversation.session.header.utilities', () =>
+    ctx.slots.register({
+      name: 'conversation.session.header.utilities',
+      id: 'dsh-hann-usage-health',
+      order: 20,
+    }, () => h(UsageStatusLight, {})),
+  ), 'dsh-hann-usage-dashboard: balance indicator')
 }
 
 interface BalanceInfo {
@@ -37,28 +45,6 @@ interface BalanceInfo {
   total_balance: string
   granted_balance: string
   topped_up_balance: string
-}
-
-type BillingPeriod = 'peak' | 'off_peak'
-
-interface PricePair {
-  flash: string
-  pro: string
-}
-
-interface PricingInfo {
-  period: BillingPeriod
-  periodLabel: string
-  rateLabel: string
-  beijingTime: string
-  docsURL: string
-  updatedAt: number
-  rows?: {
-    cacheHitInput: PricePair
-    cacheMissInput: PricePair
-    output: PricePair
-  }
-  error?: { code: string; message: string }
 }
 
 interface BalanceHealth {
@@ -313,28 +299,15 @@ const switchKnobStyle: CSSProperties = {
   transition: 'transform 140ms ease',
 }
 
-const tabLabelStyle: CSSProperties = {
-  position: 'relative',
-  display: 'inline-block',
-  paddingRight: '10px',
-}
-
-const tabDotStyle: CSSProperties = {
-  position: 'absolute',
-  top: '-4px',
-  right: '-2px',
-}
-
-function UsageTabLabel(): ReactNode {
+function UsageStatusLight(): ReactNode {
   const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot)
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 500)
     return () => window.clearInterval(id)
   }, [])
-  return h('span', { style: tabLabelStyle },
-    '用量',
-    h('span', { style: tabDotStyle }, healthDot(health, now)))
+  return h('span', { style: { display: 'inline-flex', alignItems: 'center', padding: '0 5px' } },
+    healthDot(health, now))
 }
 
 function healthDot(health: BalanceHealth | undefined, now: Date): ReactNode {
@@ -456,26 +429,38 @@ function pricingRows(pricing: PricingInfo | undefined, now: Date): ReactNode {
   if (pricing === undefined) {
     return null
   }
-  const periodColor = pricing.period === 'peak'
+  const { period, periodLabel, rateLabel, next } = billingStatusAt(now)
+  const periodColor = period === 'peak'
     ? 'var(--dsw-alias-state-warn-label, #f6a04d)'
-    : 'var(--dsw-alias-state-success-primary, #58c777)'
-  const transition = nextTransition(now)
-  const hint = pricing.period === 'peak' ? '长任务建议等空闲时段' : '适合运行长上下文任务'
+    : period === 'off_peak'
+      ? 'var(--dsw-alias-state-success-primary, #58c777)'
+      : 'var(--dsw-alias-label-secondary, #8b93a7)'
+  const heading = rateLabel ? `${periodLabel}（${rateLabel}）` : periodLabel
+  const hint = period === 'peak' ? '长任务建议等空闲时段' : period === 'off_peak' ? '适合运行长上下文任务' : '请对照两档官方价格'
+  const currentRows = period === 'unknown' ? undefined : pricing.rowsByPeriod?.[period] ??
+    (period === pricing.period ? pricing.rows : undefined)
+  let prices: ReactNode
+  if (currentRows !== undefined) {
+    prices = priceRows('官方当前价格', currentRows)
+  } else if (period === 'unknown' && pricing.rowsByPeriod !== undefined) {
+    prices = [priceRows('官方高峰价格', pricing.rowsByPeriod.peak), priceRows('官方空闲价格', pricing.rowsByPeriod.off_peak)]
+  } else {
+    prices = row('官方当前价格', `暂不可用${pricing.error !== undefined ? `（${pricing.error.code}）` : ''}`)
+  }
   return h('div', { style: { borderTop: '1px solid var(--dsw-alias-border-l2, #2a3040)', marginTop: '4px', paddingTop: '4px' } },
     h('div', { style: statusBarStyle },
-      h('span', { style: { color: periodColor, fontWeight: 700 } }, `${pricing.periodLabel}（${pricing.rateLabel}）`),
-      h('span', {}, `距${transition.nextLabel} `, h('span', { style: { color: periodColor } }, transition.countdown)),
+      h('span', { style: { color: periodColor, fontWeight: 700 } }, heading),
+      next === undefined ? null : h('span', {}, next.period === 'peak' ? '距高峰 ' : '距空闲 ',
+        h('span', { style: { color: periodColor } }, formatDuration(next.seconds))),
       h('span', {}, hint)),
-    pricing.rows !== undefined
-      ? priceRows(pricing.rows)
-      : row('官方当前价格', `暂不可用${pricing.error !== undefined ? `（${pricing.error.code}）` : ''}`),
+    prices,
     row('价格同步', '官方文档'))
 }
 
-function priceRows(rows: NonNullable<PricingInfo['rows']>): ReactNode {
-  return h('div', { style: priceGridStyle },
+function priceRows(label: string, rows: PriceRows): ReactNode {
+  return h('div', { key: label, style: priceGridStyle },
     h('span', { style: priceLabelStyle },
-      h('span', {}, '官方当前价格'),
+      h('span', {}, label),
       h('span', { style: { fontSize: '12px' } }, '（元/百万tokens）')),
     h('span', { style: priceValueStyle },
       modelPriceLine('Flash V4.1', rows.cacheHitInput.flash, rows.cacheMissInput.flash, rows.output.flash),
@@ -548,50 +533,6 @@ const highlightedPriceLineStyle: CSSProperties = {
 
 function formatPrices(cacheHit: string, cacheMiss: string, output: string): string {
   return `命中 ${cacheHit} / 未命中 ${cacheMiss} / 输出 ${output}`
-}
-
-function nextTransition(now: Date): { nextLabel: string; countdown: string } {
-  const { seconds, weekday } = beijingClock(now)
-  const next = weekday >= 1 && weekday <= 5
-    ? seconds < 9 * 3600
-      ? { label: '高峰', at: 9 * 3600 }
-      : seconds < 12 * 3600
-        ? { label: '空闲', at: 12 * 3600 }
-        : seconds < 14 * 3600
-          ? { label: '高峰', at: 14 * 3600 }
-          : seconds < 18 * 3600
-            ? { label: '空闲', at: 18 * 3600 }
-            : { label: '高峰', at: secondsUntilNextWeekdayPeak(seconds, weekday) }
-    : { label: '高峰', at: secondsUntilNextWeekdayPeak(seconds, weekday) }
-  return { nextLabel: next.label, countdown: formatDuration(next.at - seconds) }
-}
-
-function beijingClock(now: Date): { seconds: number; weekday: number } {
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(now)
-  const year = Number(parts.find((part) => part.type === 'year')?.value ?? '1970')
-  const month = Number(parts.find((part) => part.type === 'month')?.value ?? '1')
-  const day = Number(parts.find((part) => part.type === 'day')?.value ?? '1')
-  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? '0')
-  const minute = Number(parts.find((part) => part.type === 'minute')?.value ?? '0')
-  const second = Number(parts.find((part) => part.type === 'second')?.value ?? '0')
-  return {
-    seconds: hour * 3600 + minute * 60 + second,
-    weekday: new Date(Date.UTC(year, month - 1, day)).getUTCDay(),
-  }
-}
-
-function secondsUntilNextWeekdayPeak(seconds: number, weekday: number): number {
-  const daysUntilNext = weekday === 0 ? 1 : weekday >= 5 ? 8 - weekday : 1
-  return daysUntilNext * 24 * 3600 + 9 * 3600
 }
 
 function formatDuration(totalSeconds: number): string {

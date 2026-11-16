@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url'
 import type { UserConfig } from 'tsdown'
 
 const PLUGIN_ID = "dsh-hann-usage-dashboard"
@@ -7,7 +6,6 @@ const CLIENT_EXTERNALS = [
   'react', 'react/jsx-runtime', 'react-dom', 'react-dom/client',
   '@deepseek-ai/cordis',
   '@deepseek-ai/dsh-client-ui-slots',
-  '@deepseek-ai/dsh-client-runtime/client',
 ]
 
 const clientBundle: UserConfig = {
